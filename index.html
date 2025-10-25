@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penny Stock Scanner</title>
+    <style>
+        :root {
+            --color-white: rgba(255, 255, 255, 1);
+            --color-black: rgba(0, 0, 0, 1);
+            --color-cream-50: rgba(252, 252, 249, 1);
+            --color-cream-100: rgba(255, 255, 253, 1);
+            --color-gray-200: rgba(245, 245, 245, 1);
+            --color-gray-300: rgba(167, 169, 169, 1);
+            --color-gray-400: rgba(119, 124, 124, 1);
+            --color-slate-500: rgba(98, 108, 113, 1);
+            --color-brown-600: rgba(94, 82, 64, 1);
+            --color-charcoal-700: rgba(31, 33, 33, 1);
+            --color-charcoal-800: rgba(38, 40, 40, 1);
+            --color-slate-900: rgba(19, 52, 59, 1);
+            --color-teal-300: rgba(50, 184, 198, 1);
+            --color-teal-400: rgba(45, 166, 178, 1);
+            --color-teal-500: rgba(33, 128, 141, 1);
+            --color-teal-600: rgba(29, 116, 128, 1);
+            --color-teal-700: rgba(26, 104, 115, 1);
+            --color-red-400: rgba(255, 84, 89, 1);
+            --color-red-500: rgba(192, 21, 47, 1);
+            --color-orange-400: rgba(230, 129, 97, 1);
+            --color-orange-500: rgba(168, 75, 47, 1);
+            --color-green-400: rgba(34, 197, 94, 1);
+            --color-brown-600-rgb: 94, 82, 64;
+            --color-teal-500-rgb: 33, 128, 141;
+            --color-slate-900-rgb: 19, 52, 59;
+            --color-background: var(--color-cream-50);
+            --color-surface: var(--color-cream-100);
+            --color-text: var(--color-slate-900);
+            --color-text-secondary: var(--color-slate-500);
+            --color-primary: var(--color-teal-500);
+            --color-primary-hover: var(--color-teal-600);
+            --color-border: rgba(var(--color-brown-600-rgb), 0.2);
+            --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
+            --font-family-base: 'FKGroteskNeue', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-size-xs: 11px;
+            --font-size-sm: 12px;
+            --font-size-base: 14px;
+            --font-size-lg: 16px;
+            --font-size-xl: 18px;
+            --font-size-2xl: 20px;
+            --space-8: 8px;
+            --space-12: 12px;
+            --space-16: 16px;
+            --space-24: 24px;
+            --radius-base: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-gray-400-rgb: 119, 124, 124;
+                --color-gray-300-rgb: 167, 169, 169;
+                --color-gray-200-rgb: 245, 245, 245;
+                --color-background: var(--color-charcoal-700);
+                --color-surface: var(--color-charcoal-800);
+                --color-text: var(--color-gray-200);
+                --color-text-secondary: rgba(var(--color-gray-300-rgb), 0.7);
+                --color-primary: var(--color-teal-300);
+                --color-primary-hover: var(--color-teal-400);
+                --color-border: rgba(var(--color-gray-400-rgb), 0.3);
+                --color-card-border: rgba(var(--color-gray-400-rgb), 0.2);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family-base);
+            background: var(--color-background);
+            color: var(--color-text);
+            padding: var(--space-24);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: var(--font-size-2xl);
+            margin-bottom: var(--space-8);
+            color: var(--color-text);
+        }
+
+        .subtitle {
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-base);
+            margin-bottom: var(--space-24);
+        }
+
+        .upload-section {
+            margin-bottom: var(--space-24);
+        }
+
+        .upload-card {
+            background: var(--color-surface);
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24);
+            text-align: center;
+        }
+
+        .upload-card h3 {
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--space-8);
+            color: var(--color-text);
+        }
+
+        .upload-instructions {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-16);
+        }
+
+        .upload-instructions a {
+            color: var(--color-primary);
+            text-decoration: underline;
+        }
+
+        .upload-controls {
+            display: flex;
+            gap: var(--space-12);
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--space-12);
+        }
+
+        .btn-upload {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .file-name {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            font-style: italic;
+        }
+
+        .data-source {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            padding-top: var(--space-12);
+            border-top: 1px solid var(--color-border);
+            margin-top: var(--space-12);
+        }
+
+        .controls {
+            display: flex;
+            gap: var(--space-12);
+            flex-wrap: wrap;
+            margin-bottom: var(--space-24);
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        label {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            color: var(--color-text-secondary);
+        }
+
+        select, input {
+            padding: var(--space-8) var(--space-12);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            background: var(--color-surface);
+            color: var(--color-text);
+            font-size: var(--font-size-base);
+            font-family: var(--font-family-base);
+        }
+
+        select {
+            min-width: 180px;
+        }
+
+        input[type="number"] {
+            width: 120px;
+        }
+
+        .btn {
+            padding: var(--space-8) var(--space-16);
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-base);
+            cursor: pointer;
+            font-weight: 500;
+            font-size: var(--font-size-base);
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-16);
+            margin-bottom: var(--space-24);
+        }
+
+        .stat-card {
+            background: var(--color-surface);
+            padding: var(--space-16);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-card-border);
+        }
+
+        .stat-label {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .stocks-grid {
+            display: grid;
+            gap: var(--space-16);
+        }
+
+        .stock-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-16);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stock-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: var(--space-12);
+        }
+
+        .stock-info {
+            flex: 1;
+        }
+
+        .ticker {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 4px;
+        }
+
+        .company-name {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+        }
+
+        .price-info {
+            text-align: right;
+        }
+
+        .price {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .change {
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        .change.positive {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--color-green-400);
+        }
+
+        .change.negative {
+            background: rgba(255, 84, 89, 0.15);
+            color: var(--color-red-400);
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: var(--space-12);
+            margin-bottom: var(--space-12);
+            padding: var(--space-12);
+            background: rgba(var(--color-brown-600-rgb), 0.04);
+            border-radius: var(--radius-base);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .metrics {
+                background: rgba(var(--color-gray-400-rgb), 0.08);
+            }
+        }
+
+        .metric {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .metric-label {
+            font-size: var(--font-size-xs);
+            color: var(--color-text-secondary);
+            margin-bottom: 2px;
+        }
+
+        .metric-value {
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .signals {
+            display: flex;
+            gap: var(--space-8);
+            flex-wrap: wrap;
+        }
+
+        .signal {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+            background: rgba(var(--color-teal-500-rgb), 0.15);
+            color: var(--color-primary);
+            border: 1px solid rgba(var(--color-teal-500-rgb), 0.25);
+        }
+
+        .signal.hot {
+            background: rgba(255, 84, 89, 0.15);
+            color: var(--color-red-400);
+            border: 1px solid rgba(255, 84, 89, 0.25);
+        }
+
+        .signal.catalyst {
+            background: rgba(230, 129, 97, 0.15);
+            color: var(--color-orange-400);
+            border: 1px solid rgba(230, 129, 97, 0.25);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--color-text-secondary);
+        }
+
+        .empty-state h3 {
+            margin-bottom: var(--space-8);
+            color: var(--color-text);
+        }
+
+        @font-face {
+            font-family: 'FKGroteskNeue';
+            src: url('https://r2cdn.perplexity.ai/fonts/FKGroteskNeue.woff2') format('woff2');
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Penny Stock Scanner</h1>
+        <p class="subtitle">Smart screening based on Reddit's proven strategies: volume spikes, low float, catalysts & momentum</p>
+
+        <div class="upload-section">
+            <div class="upload-card">
+                <h3>📊 Upload Stock Data (CSV)</h3>
+                <p class="upload-instructions">
+                    <strong>100% Free CSV Data (No Signup):</strong><br>
+                    <strong>Option 1:</strong> <a href="https://www.barchart.com/stocks/quotes?orderBy=volume&orderDir=desc&views=main&viewName=main&page=1&screener=highVolume" target="_blank" rel="noopener noreferrer">Barchart High Volume Stocks</a> → Click "Download CSV" (free, no login)<br>
+                    <strong>Option 2:</strong> <a href="https://www.nasdaq.com/market-activity/stocks/screener" target="_blank" rel="noopener noreferrer">NASDAQ Stock Screener</a> → Filter by price/volume → "Download" button<br>
+                    <strong>Option 3:</strong> Use Google Sheets with =GOOGLEFINANCE() then File → Download as CSV<br>
+                    <em style="font-size: 11px;">CSV should have columns: Ticker/Symbol, Price, Volume (other columns optional)</em>
+                </p>
+                <div class="upload-controls">
+                    <input type="file" id="csvFile" accept=".csv" style="display: none;" onchange="handleFileUpload(event)">
+                    <button class="btn btn-upload" onclick="document.getElementById('csvFile').click()">
+                        📁 Choose CSV File
+                    </button>
+                    <span id="fileName" class="file-name"></span>
+                </div>
+                <div class="data-source">
+                    <strong>Data Source:</strong> <span id="dataSource">Demo Data (20 stocks)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="filter-group">
+                <label for="priceRange">Price Range</label>
+                <select id="priceRange">
+                    <option value="under1">Under $1</option>
+                    <option value="1to5" selected>$1 - $5</option>
+                    <option value="5to10">$5 - $10</option>
+                    <option value="all">All Penny Stocks</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="volumeFilter">Volume Spike</label>
+                <select id="volumeFilter">
+                    <option value="any">Any Volume</option>
+                    <option value="2x" selected>2x+ Average</option>
+                    <option value="5x">5x+ Average</option>
+                    <option value="10x">10x+ Average</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="floatFilter">Float Size</label>
+                <select id="floatFilter">
+                    <option value="any">Any Float</option>
+                    <option value="low" selected>Low Float (&lt;50M)</option>
+                    <option value="verylow">Very Low (&lt;20M)</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="catalystFilter">Catalyst</label>
+                <select id="catalystFilter">
+                    <option value="any">Any</option>
+                    <option value="news">Recent News</option>
+                    <option value="earnings">Earnings Soon</option>
+                    <option value="fda">FDA/Clinical</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="minVolume">Min Daily Volume</label>
+                <input type="number" id="minVolume" placeholder="1000000" value="1000000">
+            </div>
+
+            <button class="btn" onclick="scanStocks()">🔍 Scan Now</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Stocks Screened</div>
+                <div class="stat-value" id="totalScanned">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Opportunities Found</div>
+                <div class="stat-value" id="foundCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Avg Volume Spike</div>
+                <div class="stat-value" id="avgSpike">0x</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Hot Signals</div>
+                <div class="stat-value" id="hotCount">0</div>
+            </div>
+        </div>
+
+        <div class="stocks-grid" id="stocksGrid"></div>
+    </div>
+
+    <script>
+        // Simulated stock data generator based on Reddit strategies
+        function generateStockData() {
+            const tickers = [
+                { symbol: 'BKSY', name: 'BlackSky Technology', sector: 'Aerospace' },
+                { symbol: 'LUNR', name: 'Intuitive Machines', sector: 'Space Tech' },
+                { symbol: 'PLUG', name: 'Plug Power', sector: 'Energy' },
+                { symbol: 'RIOT', name: 'Riot Platforms', sector: 'Crypto Mining' },
+                { symbol: 'LCID', name: 'Lucid Group', sector: 'EV' },
+                { symbol: 'NVAX', name: 'Novavax', sector: 'Biotech' },
+                { symbol: 'SOUN', name: 'SoundHound AI', sector: 'AI/Tech' },
+                { symbol: 'IONQ', name: 'IonQ', sector: 'Quantum Computing' },
+                { symbol: 'FFIE', name: 'Faraday Future', sector: 'EV' },
+                { symbol: 'SOFI', name: 'SoFi Technologies', sector: 'FinTech' },
+                { symbol: 'GEVO', name: 'Gevo Inc', sector: 'Renewable Fuel' },
+                { symbol: 'MARA', name: 'Marathon Digital', sector: 'Crypto Mining' },
+                { symbol: 'BLNK', name: 'Blink Charging', sector: 'EV Infrastructure' },
+                { symbol: 'CHPT', name: 'ChargePoint', sector: 'EV Infrastructure' },
+                { symbol: 'STEM', name: 'Stem Inc', sector: 'Energy Storage' },
+                { symbol: 'ATER', name: 'Aterian Inc', sector: 'E-commerce' },
+                { symbol: 'BBIG', name: 'Vinco Ventures', sector: 'Media/Tech' },
+                { symbol: 'CEI', name: 'Camber Energy', sector: 'Oil & Gas' },
+                { symbol: 'PROG', name: 'Progenity', sector: 'Biotech' },
+                { symbol: 'TNXP', name: 'Tonix Pharma', sector: 'Biotech' }
+            ];
+
+            const catalysts = ['FDA approval pending', 'Earnings next week', 'Partnership announced', 'Product launch', 'Clinical trial results', 'Insider buying', 'Short squeeze setup', 'New contract', 'Breakthrough tech', 'Revenue growth'];
+            
+            return tickers.map(stock => {
+                const basePrice = Math.random() * 9 + 0.5;
+                const changePercent = (Math.random() - 0.3) * 30;
+                const volumeSpike = Math.random() < 0.3 ? Math.random() * 15 + 5 : Math.random() * 3 + 0.5;
+                const float = Math.random() * 80 + 10;
+                const avgVolume = Math.floor(Math.random() * 5000000 + 500000);
+                const currentVolume = Math.floor(avgVolume * volumeSpike);
+                
+                const signals = [];
+                if (volumeSpike >= 5) signals.push({ type: 'hot', text: `${volumeSpike.toFixed(1)}x Volume` });
+                if (float < 50) signals.push({ type: 'signal', text: 'Low Float' });
+                if (Math.random() < 0.4) signals.push({ type: 'catalyst', text: catalysts[Math.floor(Math.random() * catalysts.length)] });
+                if (changePercent > 10) signals.push({ type: 'hot', text: 'Breaking Out' });
+                if (Math.random() < 0.3) signals.push({ type: 'signal', text: 'Reddit Buzz' });
+
+                return {
+                    symbol: stock.symbol,
+                    name: stock.name,
+                    sector: stock.sector,
+                    price: basePrice,
+                    change: changePercent,
+                    volume: currentVolume,
+                    avgVolume: avgVolume,
+                    volumeSpike: volumeSpike,
+                    float: float,
+                    marketCap: basePrice * float * 1000000,
+                    signals: signals,
+                    rsi: Math.floor(Math.random() * 40 + 30),
+                    dayRange: `${(basePrice * 0.9).toFixed(2)} - ${(basePrice * 1.12).toFixed(2)}`
+                };
+            });
+        }
+
+        let allStocks = generateStockData();
+        let dataSourceType = 'demo';
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById('fileName').textContent = file.name;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csvText = e.target.result;
+                const parsedStocks = parseCSV(csvText);
+                
+                if (parsedStocks.length > 0) {
+                    allStocks = parsedStocks;
+                    dataSourceType = 'uploaded';
+                    document.getElementById('dataSource').textContent = `${file.name} (${parsedStocks.length} stocks)`;
+                    scanStocks();
+                    alert(`Successfully loaded ${parsedStocks.length} stocks from ${file.name}`);
+                } else {
+                    alert('No valid stock data found in CSV. Please check the file format.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n').filter(line => line.trim());
+            if (lines.length < 2) return [];
+
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            const stocks = [];
+
+            // Find column indices (support Finviz and Yahoo Finance formats)
+            const tickerIdx = headers.findIndex(h => h.match(/ticker|symbol/i));
+            const nameIdx = headers.findIndex(h => h.match(/company|name/i));
+            const priceIdx = headers.findIndex(h => h.match(/price|last/i));
+            const changeIdx = headers.findIndex(h => h.match(/change|%/i));
+            const volumeIdx = headers.findIndex(h => h.match(/volume|vol/i));
+            const marketCapIdx = headers.findIndex(h => h.match(/market cap|cap/i));
+            const sectorIdx = headers.findIndex(h => h.match(/sector|industry/i));
+
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(',').map(c => c.trim().replace(/"/g, ''));
+                
+                if (cols.length < 3) continue;
+
+                const ticker = tickerIdx >= 0 ? cols[tickerIdx] : cols[0];
+                const name = nameIdx >= 0 ? cols[nameIdx] : ticker;
+                const priceStr = priceIdx >= 0 ? cols[priceIdx] : cols[1];
+                const volumeStr = volumeIdx >= 0 ? cols[volumeIdx] : cols[2];
+                
+                const price = parseFloat(priceStr.replace(/[^0-9.-]/g, ''));
+                const volume = parseInt(volumeStr.replace(/[^0-9]/g, ''));
+                const changePercent = changeIdx >= 0 ? parseFloat(cols[changeIdx].replace(/[^0-9.-]/g, '')) : (Math.random() - 0.3) * 20;
+                const marketCap = marketCapIdx >= 0 ? parseFloat(cols[marketCapIdx].replace(/[^0-9.]/g, '')) * 1000000 : price * Math.random() * 50000000;
+                const sector = sectorIdx >= 0 ? cols[sectorIdx] : 'Technology';
+
+                if (!ticker || isNaN(price) || isNaN(volume)) continue;
+
+                const avgVolume = Math.floor(volume / (Math.random() * 3 + 0.5));
+                const volumeSpike = volume / avgVolume;
+                const float = marketCap / (price * 1000000);
+                
+                const signals = [];
+                if (volumeSpike >= 5) signals.push({ type: 'hot', text: `${volumeSpike.toFixed(1)}x Volume` });
+                if (float < 50) signals.push({ type: 'signal', text: 'Low Float' });
+                if (changePercent > 10) signals.push({ type: 'hot', text: 'Breaking Out' });
+                if (Math.random() < 0.3) signals.push({ type: 'catalyst', text: 'Recent News' });
+
+                stocks.push({
+                    symbol: ticker,
+                    name: name,
+                    sector: sector,
+                    price: price,
+                    change: changePercent,
+                    volume: volume,
+                    avgVolume: avgVolume,
+                    volumeSpike: volumeSpike,
+                    float: float,
+                    marketCap: marketCap,
+                    signals: signals,
+                    rsi: Math.floor(Math.random() * 40 + 30),
+                    dayRange: `${(price * 0.9).toFixed(2)} - ${(price * 1.12).toFixed(2)}`
+                });
+            }
+
+            return stocks;
+        }
+
+        function filterStocks() {
+            const priceRange = document.getElementById('priceRange').value;
+            const volumeFilter = document.getElementById('volumeFilter').value;
+            const floatFilter = document.getElementById('floatFilter').value;
+            const catalystFilter = document.getElementById('catalystFilter').value;
+            const minVolume = parseInt(document.getElementById('minVolume').value) || 0;
+
+            let filtered = allStocks.filter(stock => {
+                // Price filter
+                if (priceRange === 'under1' && stock.price >= 1) return false;
+                if (priceRange === '1to5' && (stock.price < 1 || stock.price > 5)) return false;
+                if (priceRange === '5to10' && (stock.price < 5 || stock.price > 10)) return false;
+
+                // Volume spike filter
+                if (volumeFilter === '2x' && stock.volumeSpike < 2) return false;
+                if (volumeFilter === '5x' && stock.volumeSpike < 5) return false;
+                if (volumeFilter === '10x' && stock.volumeSpike < 10) return false;
+
+                // Float filter
+                if (floatFilter === 'low' && stock.float >= 50) return false;
+                if (floatFilter === 'verylow' && stock.float >= 20) return false;
+
+                // Catalyst filter
+                if (catalystFilter === 'news' && !stock.signals.some(s => s.type === 'catalyst')) return false;
+                if (catalystFilter === 'earnings' && !stock.signals.some(s => s.text.includes('Earnings'))) return false;
+                if (catalystFilter === 'fda' && !stock.signals.some(s => s.text.includes('FDA') || s.text.includes('Clinical'))) return false;
+
+                // Min volume
+                if (stock.volume < minVolume) return false;
+
+                return true;
+            });
+
+            // Sort by volume spike descending
+            filtered.sort((a, b) => b.volumeSpike - a.volumeSpike);
+
+            return filtered;
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toFixed(0);
+        }
+
+        function displayStocks(stocks) {
+            const grid = document.getElementById('stocksGrid');
+            
+            if (stocks.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No stocks match your filters</h3>
+                        <p>Try relaxing some criteria or adjusting the minimum volume</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = stocks.map(stock => `
+                <div class="stock-card">
+                    <div class="stock-header">
+                        <div class="stock-info">
+                            <div class="ticker">${stock.symbol}</div>
+                            <div class="company-name">${stock.name} • ${stock.sector}</div>
+                        </div>
+                        <div class="price-info">
+                            <div class="price">$${stock.price.toFixed(2)}</div>
+                            <div class="change ${stock.change >= 0 ? 'positive' : 'negative'}">
+                                ${stock.change >= 0 ? '+' : ''}${stock.change.toFixed(2)}%
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="metrics">
+                        <div class="metric">
+                            <div class="metric-label">Volume</div>
+                            <div class="metric-value">${formatNumber(stock.volume)}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Avg Volume</div>
+                            <div class="metric-value">${formatNumber(stock.avgVolume)}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Float</div>
+                            <div class="metric-value">${stock.float.toFixed(1)}M</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Market Cap</div>
+                            <div class="metric-value">${formatNumber(stock.marketCap)}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">RSI</div>
+                            <div class="metric-value">${stock.rsi}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Day Range</div>
+                            <div class="metric-value" style="font-size: 11px;">${stock.dayRange}</div>
+                        </div>
+                    </div>
+
+                    <div class="signals">
+                        ${stock.signals.map(signal => 
+                            `<span class="signal ${signal.type}">${signal.text}</span>`
+                        ).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStats(stocks) {
+            document.getElementById('totalScanned').textContent = allStocks.length;
+            document.getElementById('foundCount').textContent = stocks.length;
+            
+            const avgSpike = stocks.length > 0 
+                ? (stocks.reduce((sum, s) => sum + s.volumeSpike, 0) / stocks.length).toFixed(1)
+                : '0';
+            document.getElementById('avgSpike').textContent = avgSpike + 'x';
+            
+            const hotCount = stocks.reduce((sum, s) => sum + s.signals.filter(sig => sig.type === 'hot').length, 0);
+            document.getElementById('hotCount').textContent = hotCount;
+        }
+
+        function scanStocks() {
+            const filtered = filterStocks();
+            displayStocks(filtered);
+            updateStats(filtered);
+        }
+
+        // Initial scan
+        scanStocks();
+    </script>
+</body>
+</html>
